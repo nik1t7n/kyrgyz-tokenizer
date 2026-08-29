@@ -1,0 +1,128 @@
+version: tokenizer-v2
+
+paths:
+  kyrgyz_train_glob: data/processed/corpus-v1/train-*.jsonl.zst
+  russian_train_glob: data/processed/corpus-ru-v1/train-*.jsonl.zst
+  validation_sets:
+    kyrgyz-corpus-validation: data/processed/corpus-v1/validation-*.txt.zst
+    russian-corpus-validation: data/processed/corpus-ru-v1/validation-*.txt.zst
+  working_dir: artifacts/tokenizer-v2
+  evaluation_dir: data/evaluation/tokenizer-v2
+  release_dir: models/kyrgyz-russian-byte-bpe-v2
+
+training:
+  total_bytes: 503316480
+  russian_shares: [0.0, 0.1, 0.2, 0.3]
+  pretokenizers: [deepseek, gigachat]
+  vocab_sizes: [32768, 40960, 50000]
+  min_frequency: 2
+  iterator_batch_size: 1000
+  max_token_length: 64
+
+evaluation:
+  embedding_dimensions: [768, 2048, 4096]
+  word_pattern: "[\\p{L}\\p{M}]+(?:[-'][\\p{L}\\p{M}]+)*"
+  groups:
+    kyrgyz-validation: [kyrgyz-corpus-validation]
+    russian-validation: [russian-corpus-validation]
+    kyrgyz-external: [ud_ktmu, ud_tuecl, belebele_ky, sib200_ky]
+    russian-external: [ud_syntagrus, belebele_ru, sib200_ru]
+    mixed-validation: [mixed_ky_ru]
+    code-diagnostic: [python_tokenize]
+  selection:
+    baseline_id: kyrgyz-v1-32768
+    minimum_kyrgyz_retention: 0.90
+    minimum_russian_gain: 1.20
+
+external_datasets:
+  ud_ktmu:
+    kind: conllu
+    url: https://raw.githubusercontent.com/UniversalDependencies/UD_Kyrgyz-KTMU/46aad7546a3797df9f9ccf8c1c23019eab66dbd2/ky_ktmu-ud-test.conllu
+    revision: 46aad7546a3797df9f9ccf8c1c23019eab66dbd2
+    license: CC-BY-SA-4.0
+    include_morphology: true
+  ud_tuecl:
+    kind: conllu
+    url: https://raw.githubusercontent.com/UniversalDependencies/UD_Kyrgyz-TueCL/7420c3d8b74d31ccd09e7c43f8bd5dcc39509949/ky_tuecl-ud-test.conllu
+    revision: 7420c3d8b74d31ccd09e7c43f8bd5dcc39509949
+    license: CC-BY-SA-4.0
+    include_morphology: true
+  ud_syntagrus:
+    kind: conllu
+    url: https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRus/c5266a6f6f4aaa94f4dfa9b6cc863b94a5358afa/ru_syntagrus-ud-test.conllu
+    revision: c5266a6f6f4aaa94f4dfa9b6cc863b94a5358afa
+    license: CC-BY-SA-4.0
+    include_morphology: false
+  belebele_ky:
+    kind: huggingface
+    repo: facebook/belebele
+    subset: kir_Cyrl
+    split: test
+    revision: 7899cdfa4e1e0d733fd77c848e2c273cb1d32be2
+    text_fields: [flores_passage, question, mc_answer1, mc_answer2, mc_answer3, mc_answer4]
+    license: CC-BY-SA-4.0
+  belebele_ru:
+    kind: huggingface
+    repo: facebook/belebele
+    subset: rus_Cyrl
+    split: test
+    revision: 7899cdfa4e1e0d733fd77c848e2c273cb1d32be2
+    text_fields: [flores_passage, question, mc_answer1, mc_answer2, mc_answer3, mc_answer4]
+    license: CC-BY-SA-4.0
+  sib200_ky:
+    kind: huggingface
+    repo: Davlan/sib200
+    subset: kir_Cyrl
+    split: test
+    revision: 38977a667f6fc264d5c26ec57a01e16db040b358
+    text_fields: [text]
+    license: CC-BY-SA-4.0
+  sib200_ru:
+    kind: huggingface
+    repo: Davlan/sib200
+    subset: rus_Cyrl
+    split: test
+    revision: 38977a667f6fc264d5c26ec57a01e16db040b358
+    text_fields: [text]
+    license: CC-BY-SA-4.0
+  python_tokenize:
+    kind: text_url
+    url: https://raw.githubusercontent.com/python/cpython/55fee9cf216abe4ec0d1139f94b1930fbd0c7644/Lib/tokenize.py
+    revision: 55fee9cf216abe4ec0d1139f94b1930fbd0c7644
+    license: PSF-2.0
+  mixed_ky_ru:
+    kind: mixed_validation
+    source_glob: data/processed/corpus-v1/validation-*.jsonl.zst
+    minimum_span_chars: 100
+    minimum_score: 0.70
+    max_spans_per_document: 30
+    max_records: 200
+    kyrgyz_label: __label__kir_Cyrl
+    russian_label: __label__rus_Cyrl
+    glotlid:
+      repo_id: cis-lmu/glotlid
+      revision: 85cd6716494360367b75f642b5bc78667605d0b4
+      filename: model_v3.bin
+      sample_chars: 10000
+    license: derived internal benchmark; source licenses retained in corpus-v1
+
+baselines:
+  - id: kyrgyz-v1-32768
+    kind: local
+    path: models/kyrgyz-byte-bpe-v1/tokenizer.json
+  - id: gigachat3-128k
+    kind: huggingface
+    repo: ai-sage/GigaChat3-10B-A1.8B-base
+    revision: 8092e7006e188b65fe10526a1b6472576645e5ed
+  - id: deepseek-v3-128k
+    kind: huggingface
+    repo: deepseek-ai/DeepSeek-V3
+    revision: e815299b0bcbac849fa540c768ef21845365c9eb
+  - id: qwen2.5-152k
+    kind: huggingface
+    repo: Qwen/Qwen2.5-7B
+    revision: d149729398750b98c0af14eb82c78cfe92750796
+  - id: openai-o200k
+    kind: tiktoken
+    encoding: o200k_base
+    artifact_sha256: 446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d

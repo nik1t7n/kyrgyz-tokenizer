@@ -1,0 +1,63 @@
+version: corpus-ru-v1
+seed: 20260829
+
+paths:
+  database: data/interim/corpus-ru-v1.sqlite3
+  raw_dir: data/raw
+  processed_dir: data/processed/corpus-ru-v1
+  artifacts_dir: artifacts/corpus-ru-v1
+
+cleaning:
+  min_chars: 100
+  max_chars: 200000
+  min_alpha_ratio: 0.45
+  min_cyrillic_ratio: 0.60
+  max_latin_ratio: 0.30
+  max_special_char_ratio: 0.20
+  max_urls_per_1000_chars: 2.0
+  max_html_tags: 2
+  max_repeated_line_ratio: 0.35
+  repeated_ngram_size: 5
+  max_repeated_ngram_ratio: 0.25
+  min_gzip_ratio: 0.16
+  redact_pii: true
+
+language_id:
+  repo_id: cis-lmu/glotlid
+  revision: 85cd6716494360367b75f642b5bc78667605d0b4
+  filename: model_v3.bin
+  expected_label: __label__rus_Cyrl
+  min_score: 0.756
+  sample_chars: 10000
+
+deduplication:
+  threshold: 0.75
+  num_perm: 112
+  word_ngram_size: 5
+
+mixture:
+  target_bytes: 167772160
+  validation_modulus: 100
+  validation_buckets: [0]
+  source_order:
+    - fineweb2-rus-cyrl
+  fill_source: fineweb2-rus-cyrl
+
+sources:
+  - id: fineweb2-rus-cyrl
+    kind: huggingface
+    priority: 10
+    dataset: HuggingFaceFW/fineweb-2
+    subset: rus_Cyrl
+    revision: af9c13333eb981300149d5ca60a8e9d659b276b9
+    split: train
+    text_field: text
+    id_field: id
+    url_field: url
+    metadata_fields: [dump, date, language, language_script, language_score, top_langs, minhash_cluster_size]
+    license: ODC-BY-1.0
+    require_lid: false
+    upstream_lid_score_field: language_score
+    shuffle_seed: 20260829
+    shuffle_buffer_size: 10000
+    max_accepted_bytes: 209715200

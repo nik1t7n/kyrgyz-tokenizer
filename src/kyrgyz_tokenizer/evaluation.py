@@ -90,18 +90,35 @@ def _load_adapters(
     adapters: list[TokenizerAdapter] = []
     locks: list[dict[str, Any]] = []
     unavailable: list[dict[str, str]] = []
-    for path_value in sorted(glob.glob(str(working_dir / "models" / "bpe-*" / "tokenizer.json"))):
-        path = Path(path_value)
-        vocab_size = int(path.parent.name.removeprefix("bpe-"))
+    manifest_path = working_dir / "training-manifest.json"
+    local_models: list[tuple[str, Path]] = []
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        local_models = [
+            (str(item["id"]), Path(item["path"])) for item in manifest["variants"]
+        ]
+    else:
+        local_models = [
+            (
+                f"kyrgyz-bpe-{Path(path_value).parent.name.removeprefix('bpe-')}",
+                Path(path_value),
+            )
+            for path_value in sorted(
+                glob.glob(str(working_dir / "models" / "bpe-*" / "tokenizer.json"))
+            )
+        ]
+
+    for model_id, path in local_models:
+        tokenizer = Tokenizer.from_file(str(path))
         adapters.append(
             HuggingFaceAdapter(
-                id=f"kyrgyz-bpe-{vocab_size}",
-                tokenizer=Tokenizer.from_file(str(path)),
+                id=model_id,
+                tokenizer=tokenizer,
             )
         )
         locks.append(
             {
-                "id": f"kyrgyz-bpe-{vocab_size}",
+                "id": model_id,
                 "kind": "local",
                 "path": str(path),
                 "sha256": sha256_file(path),
@@ -112,7 +129,20 @@ def _load_adapters(
     cache_dir.mkdir(parents=True, exist_ok=True)
     for spec in config["baselines"]:
         try:
-            if spec["kind"] == "huggingface":
+            if spec["kind"] == "local":
+                path = resolve_path(spec["path"])
+                adapters.append(
+                    HuggingFaceAdapter(spec["id"], Tokenizer.from_file(str(path)))
+                )
+                locks.append(
+                    {
+                        "id": spec["id"],
+                        "kind": "local-baseline",
+                        "path": str(path),
+                        "sha256": sha256_file(path),
+                    }
+                )
+            elif spec["kind"] == "huggingface":
                 path = hf_hub_download(
                     spec["repo"],
                     "tokenizer.json",
@@ -276,6 +306,12 @@ def evaluate_tokenizers(config_path: Path) -> dict[str, Any]:
                     "roundtrip_failures": aggregate["roundtrip_failures"],
                 },
                 "external_only": _external_summary(per_dataset),
+                "groups": {
+                    group_id: _summary_for_datasets(per_dataset, dataset_ids)
+                    for group_id, dataset_ids in config["evaluation"].get(
+                        "groups", {}
+                    ).items()
+                },
                 "morphology": _evaluate_morphology(adapter, morphology),
                 "datasets": per_dataset,
                 "embedding_parameters": {
@@ -305,7 +341,22 @@ def evaluate_tokenizers(config_path: Path) -> dict[str, Any]:
 
 
 def _external_summary(per_dataset: dict[str, Any]) -> dict[str, Any]:
-    included = [values for key, values in per_dataset.items() if key != "corpus-validation"]
+    included = [
+        values for key, values in per_dataset.items() if not key.endswith("validation")
+    ]
+    return _summarize_metrics(included)
+
+
+def _summary_for_datasets(
+    per_dataset: dict[str, Any], dataset_ids: list[str]
+) -> dict[str, Any]:
+    missing = [dataset_id for dataset_id in dataset_ids if dataset_id not in per_dataset]
+    if missing:
+        raise KeyError(f"Missing evaluation datasets: {', '.join(missing)}")
+    return _summarize_metrics([per_dataset[dataset_id] for dataset_id in dataset_ids])
+
+
+def _summarize_metrics(included: list[dict[str, Any]]) -> dict[str, Any]:
     totals = Counter()
     for values in included:
         for key in ("utf8_bytes", "characters", "words", "tokens"):
@@ -313,6 +364,8 @@ def _external_summary(per_dataset: dict[str, Any]) -> dict[str, Any]:
         totals["word_tokens"] += values["isolated_word_fertility"] * values["words"]
         totals["single_token_words"] += values["single_token_word_rate"] * values["words"]
         totals["roundtrip_failures"] += values["roundtrip_failures"]
+    if not totals["tokens"] or not totals["words"]:
+        raise ValueError("Cannot summarize an empty evaluation group")
     return {
         "utf8_bytes": totals["utf8_bytes"],
         "characters": totals["characters"],

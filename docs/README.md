@@ -17,9 +17,13 @@ This directory is the durable record of how the corpus and tokenizer are built.
 - [0005: minimum document length](decisions/0005-minimum-document-length.md)
 - [0006: tokenizer architecture](decisions/0006-tokenizer-architecture.md)
 - [0007: select the 32K release vocabulary](decisions/0007-tokenizer-vocabulary.md)
+- [0008: optimize v2 for Kyrgyz-Russian use](decisions/0008-bilingual-tokenizer-scope.md)
+- [0009: release the 32K 10%-Russian v2 candidate](decisions/0009-tokenizer-v2-selection.md)
 
 ## Corpus v1 reports
 
 - [Final build report](reports/CORPUS_V1_BUILD_REPORT.md)
 - [Quality audit](reports/CORPUS_V1_QUALITY_AUDIT.md)
 - [Tokenizer v1 evaluation](reports/TOKENIZER_V1_EVALUATION.md)
+- [Russian supplement corpus v1 build report](reports/CORPUS_RU_V1_BUILD_REPORT.md)
+- [Kyrgyz-Russian tokenizer v2 evaluation](reports/TOKENIZER_V2_EVALUATION.md)

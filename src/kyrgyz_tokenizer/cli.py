@@ -12,13 +12,25 @@ from .evaluation import evaluate_tokenizers
 from .release import release_tokenizer
 from .reporting import write_evaluation_report
 from .training import train_tokenizers
+from .v2 import build_v2, select_and_release_v2, train_v2_experiment
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Train and evaluate the Kyrgyz tokenizer")
     parser.add_argument(
         "command",
-        choices=("train", "prepare-benchmarks", "evaluate", "report", "release", "inspect", "build"),
+        choices=(
+            "train",
+            "prepare-benchmarks",
+            "evaluate",
+            "report",
+            "release",
+            "inspect",
+            "build",
+            "v2-train",
+            "v2-select",
+            "v2-build",
+        ),
     )
     parser.add_argument(
         "--config",
@@ -57,6 +69,12 @@ def main() -> None:
         tokenizer = Tokenizer.from_file(str(args.model))
         encoding = tokenizer.encode(args.text, add_special_tokens=False)
         print(json.dumps({"ids": encoding.ids, "tokens": encoding.tokens, "decoded": tokenizer.decode(encoding.ids)}, ensure_ascii=False, indent=2))
+    if args.command == "v2-train":
+        train_v2_experiment(args.config, reset=args.reset)
+    if args.command == "v2-select":
+        print(json.dumps(select_and_release_v2(args.config), ensure_ascii=False, indent=2))
+    if args.command == "v2-build":
+        print(json.dumps(build_v2(args.config, reset=args.reset), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

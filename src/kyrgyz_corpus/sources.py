@@ -103,6 +103,12 @@ def iter_huggingface(source: dict) -> Iterator[RawDocument]:
         kwargs["name"] = source["subset"]
 
     dataset = load_dataset(**kwargs)
+    shuffle_seed = source.get("shuffle_seed")
+    if shuffle_seed is not None:
+        dataset = dataset.shuffle(
+            seed=int(shuffle_seed),
+            buffer_size=int(source.get("shuffle_buffer_size", 10_000)),
+        )
     text_field = source.get("text_field", "text")
     id_field = source.get("id_field")
     url_field = source.get("url_field")
@@ -268,6 +274,8 @@ def open_source(source: dict, raw_dir: Path) -> tuple[Iterator[RawDocument], dic
             "subset": source.get("subset"),
             "split": source.get("split", "train"),
             "revision": source["revision"],
+            "shuffle_seed": source.get("shuffle_seed"),
+            "shuffle_buffer_size": source.get("shuffle_buffer_size"),
         }
         return iter_huggingface(source), lock
     if kind == "wikimedia_xml":
