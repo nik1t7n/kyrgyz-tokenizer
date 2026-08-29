@@ -1,0 +1,74 @@
+version: tokenizer-v1
+
+paths:
+  train_glob: data/processed/corpus-v1/train-*.txt.zst
+  validation_glob: data/processed/corpus-v1/validation-*.txt.zst
+  working_dir: artifacts/tokenizer-v1
+  evaluation_dir: data/evaluation/tokenizer-v1
+  release_dir: models/kyrgyz-byte-bpe-v1
+
+training:
+  vocab_sizes: [8192, 16384, 32768, 50000]
+  min_frequency: 2
+  iterator_batch_size: 1000
+  max_token_length: 64
+
+evaluation:
+  embedding_dimensions: [768, 2048, 4096]
+  word_pattern: "[\\p{L}\\p{M}]+(?:[-'][\\p{L}\\p{M}]+)*"
+
+external_datasets:
+  ud_ktmu:
+    kind: conllu
+    url: https://raw.githubusercontent.com/UniversalDependencies/UD_Kyrgyz-KTMU/46aad7546a3797df9f9ccf8c1c23019eab66dbd2/ky_ktmu-ud-test.conllu
+    revision: 46aad7546a3797df9f9ccf8c1c23019eab66dbd2
+    license: CC-BY-SA-4.0
+  ud_tuecl:
+    kind: conllu
+    url: https://raw.githubusercontent.com/UniversalDependencies/UD_Kyrgyz-TueCL/7420c3d8b74d31ccd09e7c43f8bd5dcc39509949/ky_tuecl-ud-test.conllu
+    revision: 7420c3d8b74d31ccd09e7c43f8bd5dcc39509949
+    license: CC-BY-SA-4.0
+  belebele:
+    kind: huggingface
+    repo: facebook/belebele
+    subset: kir_Cyrl
+    split: test
+    revision: 7899cdfa4e1e0d733fd77c848e2c273cb1d32be2
+    text_fields: [flores_passage, question, mc_answer1, mc_answer2, mc_answer3, mc_answer4]
+    license: CC-BY-SA-4.0
+  sib200:
+    kind: huggingface
+    repo: Davlan/sib200
+    subset: kir_Cyrl
+    split: test
+    revision: 38977a667f6fc264d5c26ec57a01e16db040b358
+    text_fields: [text]
+    license: CC-BY-SA-4.0
+
+baselines:
+  - id: deepseek-v3-128k
+    kind: huggingface
+    repo: deepseek-ai/DeepSeek-V3
+    revision: e815299b0bcbac849fa540c768ef21845365c9eb
+  - id: qwen2.5-152k
+    kind: huggingface
+    repo: Qwen/Qwen2.5-7B
+    revision: d149729398750b98c0af14eb82c78cfe92750796
+  - id: openai-cl100k
+    kind: tiktoken
+    encoding: cl100k_base
+    artifact_sha256: 223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7
+  - id: openai-o200k
+    kind: tiktoken
+    encoding: o200k_base
+    artifact_sha256: 446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d
+  - id: llama-3.2-128k
+    kind: huggingface
+    repo: meta-llama/Llama-3.2-1B
+    revision: 4e20de362430cd3b72f300e6b0f18e50e7166e08
+    gated: true
+  - id: gemma-3-262k
+    kind: huggingface
+    repo: google/gemma-3-1b-pt
+    revision: fcf18a2a879aab110ca39f8bffbccd5d49d8eb29
+    gated: true

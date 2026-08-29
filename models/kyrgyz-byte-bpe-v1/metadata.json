@@ -1,0 +1,127 @@
+{
+  "released_at": "2026-08-29T07:22:39.092144+00:00",
+  "id": "kyrgyz-byte-bpe-v1-32768",
+  "algorithm": "byte-level BPE",
+  "vocab_size": 32768,
+  "base_byte_tokens": 256,
+  "special_tokens": [],
+  "normalizer": null,
+  "config_sha256": "caec6499d11759f2e54c7bc8fe85bee2504b3b6cf09ea51e7246a9cc39b2e4bd",
+  "tokenizer_sha256": "5047b4f427bb1af1c06cfb9cefbe83790b56df409b137b887988db6eba4b159f",
+  "evaluation": {
+    "id": "kyrgyz-bpe-32768",
+    "vocab_size": 32768,
+    "aggregate": {
+      "utf8_bytes": 7075826,
+      "characters": 3870294,
+      "words": 483273,
+      "tokens": 816382,
+      "bytes_per_token": 8.667297907107212,
+      "characters_per_token": 4.740788013454486,
+      "sequence_fertility": 1.6892770752762931,
+      "isolated_word_fertility": 2.016251683830878,
+      "single_token_word_rate": 0.32923627018269175,
+      "roundtrip_failures": 0
+    },
+    "external_only": {
+      "utf8_bytes": 1331087,
+      "characters": 722189,
+      "words": 90519,
+      "tokens": 148174,
+      "bytes_per_token": 8.983269669442683,
+      "characters_per_token": 4.873925250043867,
+      "sequence_fertility": 1.6369381013930777,
+      "isolated_word_fertility": 2.0739292303273347,
+      "single_token_word_rate": 0.3036489576773937,
+      "roundtrip_failures": 0
+    },
+    "morphology": {
+      "eligible_ud_suffix_forms": 5885,
+      "lemma_suffix_boundary_recall": 0.34137638062871706,
+      "tokens_per_inflected_word": 2.2120645709430757,
+      "method": "Heuristic: surface form case-insensitively begins with the UD lemma"
+    },
+    "datasets": {
+      "corpus-validation": {
+        "records": 12601,
+        "utf8_bytes": 5744739,
+        "characters": 3148105,
+        "words": 392754,
+        "tokens": 668208,
+        "bytes_per_token": 8.597231700308885,
+        "characters_per_token": 4.711265055192396,
+        "sequence_fertility": 1.701339769932324,
+        "isolated_word_fertility": 2.0029585949474735,
+        "single_token_word_rate": 0.3351334423073985,
+        "tokens_per_record_p50": 25,
+        "tokens_per_record_p90": 108,
+        "roundtrip_failures": 0
+      },
+      "ud_ktmu": {
+        "records": 1212,
+        "utf8_bytes": 143589,
+        "characters": 77583,
+        "words": 9588,
+        "tokens": 14883,
+        "bytes_per_token": 9.647853255392057,
+        "characters_per_token": 5.212860310421286,
+        "sequence_fertility": 1.552252816020025,
+        "isolated_word_fertility": 1.980287859824781,
+        "single_token_word_rate": 0.34146850229453485,
+        "tokens_per_record_p50": 12,
+        "tokens_per_record_p90": 17,
+        "roundtrip_failures": 0
+      },
+      "ud_tuecl": {
+        "records": 173,
+        "utf8_bytes": 12072,
+        "characters": 6552,
+        "words": 978,
+        "tokens": 1588,
+        "bytes_per_token": 7.602015113350126,
+        "characters_per_token": 4.1259445843828715,
+        "sequence_fertility": 1.6237218813905931,
+        "isolated_word_fertility": 1.899795501022495,
+        "single_token_word_rate": 0.32515337423312884,
+        "tokens_per_record_p50": 8,
+        "tokens_per_record_p90": 14,
+        "roundtrip_failures": 0
+      },
+      "belebele": {
+        "records": 900,
+        "utf8_bytes": 1124238,
+        "characters": 610291,
+        "words": 76450,
+        "tokens": 126116,
+        "bytes_per_token": 8.914316978020235,
+        "characters_per_token": 4.839124298265089,
+        "sequence_fertility": 1.6496533682145194,
+        "isolated_word_fertility": 2.0882930019620667,
+        "single_token_word_rate": 0.29861347285807716,
+        "tokens_per_record_p50": 136,
+        "tokens_per_record_p90": 191,
+        "roundtrip_failures": 0
+      },
+      "sib200": {
+        "records": 204,
+        "utf8_bytes": 51188,
+        "characters": 27763,
+        "words": 3503,
+        "tokens": 5587,
+        "bytes_per_token": 9.161983175228208,
+        "characters_per_token": 4.969214247359942,
+        "sequence_fertility": 1.594918641164716,
+        "isolated_word_fertility": 2.0653725378247216,
+        "single_token_word_rate": 0.30402512132457893,
+        "tokens_per_record_p50": 25,
+        "tokens_per_record_p90": 43,
+        "roundtrip_failures": 0
+      }
+    },
+    "embedding_parameters": {
+      "768": 25165824,
+      "2048": 67108864,
+      "4096": 134217728
+    }
+  }
+}

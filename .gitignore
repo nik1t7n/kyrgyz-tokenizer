@@ -8,6 +8,7 @@ __pycache__/
 data/raw/
 data/interim/
 data/processed/
+data/evaluation/
 artifacts/
 
 # Local caches
