@@ -13,13 +13,11 @@ Local generated artifacts:
 ```text
 data/
   raw/                 downloaded archives that cannot be streamed
-  interim/             normalized per-source shards
+  interim/             SQLite staging database with normalized documents
   processed/
-    full/              all accepted unique documents
-    tokenizer-v1/      deterministic approximately 500 MiB mixture
-    validation/        hash-based held-out documents
+    corpus-v1/         deterministic train and validation JSONL/text shards
 artifacts/
-  manifests/           source revisions, checksums, code/config identity
+  manifests/           source revisions and downloaded checksums
   reports/             counts, bytes, rejection reasons, source distribution
   audit/               bounded random accepted/rejected samples
 ```
@@ -33,6 +31,7 @@ Git-tracked outputs contain aggregate statistics and bounded audit material only
 1. Resolve and record the immutable Hugging Face revision for every Hub dataset.
 2. Stream large Hub sources and select only required columns.
 3. Download the official Wikimedia `kywiki` pages/articles dump and record its published checksum.
+   Remove templates, formatting markup, media captions, category links, references, and conventional trailing link/source sections while retaining visible article prose and ordinary link text.
 4. Download Manas-UdS from its official CLARIN URL and verify the published SHA-1 checksum.
 5. Store source and license metadata before any transformation.
 
@@ -40,9 +39,10 @@ Git-tracked outputs contain aggregate statistics and bounded audit material only
 
 1. Decode valid UTF-8 and normalize to NFC.
 2. Remove control characters; normalize horizontal whitespace; retain paragraph boundaries.
-3. Reject empty, extremely short, malformed, HTML-heavy, URL-heavy, and high-symbol-ratio documents.
-4. Detect repeated lines, repeated word n-grams, and abnormally compressible template spam.
-5. Redact email, public IP, and phone-like strings while preserving surrounding natural text.
+3. Split over-limit source records deterministically at paragraph, line, or sentence boundaries without overlap; preserve the parent ID and chunk coordinates.
+4. Reject empty, extremely short, malformed, HTML-heavy, URL-heavy, and high-symbol-ratio documents.
+5. Detect repeated lines, repeated word n-grams, and abnormally compressible template spam.
+6. Redact e-mail addresses and IPv4 addresses while preserving surrounding natural text. Phone-like strings are retained in v1 because a broad rule would also destroy legitimate dates, identifiers, and numeric language examples; stronger PII handling remains a future audited stage.
 
 ### Phase 3: language and script filtering
 
@@ -64,7 +64,7 @@ Git-tracked outputs contain aggregate statistics and bounded audit material only
 1. Measure clean unique bytes by source and document-length bucket.
 2. Create a deterministic source-capped mixture close to 500 MiB without duplicating documents.
 3. Split after deduplication using the normalized-text hash: 99% train, 1% validation.
-4. Write compressed sharded JSONL/Parquet with document and provenance fields, plus plain UTF-8 text shards for future tokenizer training.
+4. Write compressed sharded JSONL with document and provenance fields, plus plain UTF-8 text shards for future tokenizer training.
 
 ### Phase 6: quality report
 
