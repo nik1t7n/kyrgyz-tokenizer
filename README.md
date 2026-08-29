@@ -1,10 +1,12 @@
 # Kyrgyz Tokenizer
 
-A 32,768-token byte-level BPE tokenizer made for Kyrgyz and Russian.
+A hands-on experiment in building a good tokenizer for Kyrgyz from the ground up.
 
-This repository answers one practical question: can we make Kyrgyz text use fewer, more useful tokens without making Russian text painfully long?
+The original goal was simple: understand the whole process by doing it myself. I collected a real Kyrgyz corpus, built the training pipeline, implemented the core byte-pair merging logic, and trained a 32,768-token byte-level BPE tokenizer.
 
-The answer from this experiment is yes. The final tokenizer keeps 99.25% of the Kyrgyz compression of the first Kyrgyz-only version, improves Russian compression by 35.33%, and improves mixed Kyrgyz-Russian documents by 9.64%.
+The first version learned only from Kyrgyz. Later tests revealed something I had not planned for: real documents in Kyrgyzstan often mix Kyrgyz and Russian, while the Kyrgyz-only tokenizer made Russian text unnecessarily long. That discovery led to a second, bilingual version.
+
+The final tokenizer keeps 99.25% of the Kyrgyz compression of the first version, improves Russian compression by 35.33%, and improves mixed Kyrgyz-Russian documents by 9.64%.
 
 The tokenizer is finished and frozen. Training a language model comes later in a separate project.
 
