@@ -60,4 +60,4 @@ Before changing GitHub visibility:
 4. set the repository description and topics to match the README;
 5. change visibility only as a separate deliberate action.
 
-After publication, corpus text must remain excluded. Future LLM code, checkpoints, and evaluations belong in a separate repository so this tokenizer result remains independently reproducible and citable.
+After publication, corpus text must remain excluded.

@@ -8,8 +8,6 @@ The first version learned only from Kyrgyz. Later tests revealed something I had
 
 The final tokenizer keeps 99.25% of the Kyrgyz compression of the first version, improves Russian compression by 35.33%, and improves mixed Kyrgyz-Russian documents by 9.64%.
 
-The tokenizer is finished and frozen. Training a language model comes later in a separate project.
-
 ## What is a tokenizer?
 
 A language model does not read text directly. A tokenizer first cuts text into pieces and replaces every piece with a number.
@@ -91,7 +89,7 @@ Higher bytes/token means one token carries more text, so the sequence is shorter
 
 On 21 real held-out documents containing both languages, 20 became shorter. One became longer by a single token. Every evaluated record decoded back into exactly the same text.
 
-This proves that the tokenizer packs the tested text more efficiently. It does not prove that a future language model will be smarter. That requires a separate experiment with matched models.
+These numbers show how compactly the tokenizer splits the tested text.
 
 ## Try it
 
@@ -123,14 +121,14 @@ assert tokenizer.decode(ids) == text
 print(ids)
 ```
 
-The tokenizer does not include BOS, EOS, padding, or chat markers. A future model can add the protocol tokens it needs.
+The tokenizer does not include BOS, EOS, padding, or chat markers.
 
 ## Where things live
 
 ```text
 configs/   settings for corpus and tokenizer runs
 docs/      research, decisions, and full reports
-models/    the frozen v1 and v2 tokenizer files
+models/    the saved v1 and v2 tokenizer files
 src/       corpus and tokenizer code
 ```
 
@@ -146,7 +144,6 @@ If you want the full technical story, start with:
 
 ## Limits
 
-- No language model has been trained with this tokenizer yet.
 - The mixed test set has 21 real documents, mostly formal writing rather than chat.
 - English and code can be encoded, but the tokenizer was not optimized for them.
 - The corpus text is not redistributed.
