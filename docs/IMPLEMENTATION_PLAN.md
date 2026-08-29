@@ -32,8 +32,9 @@ Git-tracked outputs contain aggregate statistics and bounded audit material only
 
 1. Resolve and record the immutable Hugging Face revision for every Hub dataset.
 2. Stream large Hub sources and select only required columns.
-3. Download Manas-UdS from its official CLARIN URL and verify the published SHA-1 checksum.
-4. Store source and license metadata before any transformation.
+3. Download the official Wikimedia `kywiki` pages/articles dump and record its published checksum.
+4. Download Manas-UdS from its official CLARIN URL and verify the published SHA-1 checksum.
+5. Store source and license metadata before any transformation.
 
 ### Phase 2: normalization and structural checks
 
