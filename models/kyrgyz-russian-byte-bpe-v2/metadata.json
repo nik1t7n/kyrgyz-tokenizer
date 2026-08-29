@@ -1,8 +1,27 @@
 {
-  "released_at": "2026-08-29T08:01:07.493147+00:00",
+  "schema_version": 1,
+  "released_at": "2026-08-29T08:14:01.314385+00:00",
   "id": "bilingual-gigachat-ru10-32768",
   "config_sha256": "87cdd78c3e652243c11654c7e054a316c50fb649f3c64136947514e8845f8a03",
   "tokenizer_sha256": "751db52127be3c2bf6a7164a98b0caaac7c7fc180a941c99f8889f637ec3d688",
+  "training": {
+    "algorithm": "category-aware byte-level BPE",
+    "base_vocabulary_size": 256,
+    "vocabulary_size": 32768,
+    "pretokenizer": "gigachat",
+    "normalizer": null,
+    "special_tokens": [],
+    "russian_share": 0.1,
+    "requested_utf8_bytes": 503316480,
+    "selected_utf8_bytes": 503315878,
+    "selected_utf8_bytes_by_source": {
+      "fineweb2-kir-cyrl": 203904832,
+      "kyrgyz-news": 113451489,
+      "kyrgyz-wikipedia": 118276076,
+      "manas-uds": 17351875,
+      "fineweb2-rus-cyrl": 50331606
+    }
+  },
   "selection_constraints": {
     "baseline_id": "kyrgyz-v1-32768",
     "minimum_kyrgyz_retention": 0.9,

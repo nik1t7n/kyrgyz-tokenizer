@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem in the corpus or tokenizer path
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, personal data, licensed corpus passages, or security vulnerabilities. Report security issues through the process in `SECURITY.md`.
+  - type: input
+    id: revision
+    attributes:
+      label: Repository revision
+      description: Commit SHA where the issue occurs.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Corpus collection or provenance
+        - Cleaning or language identification
+        - Deduplication or export
+        - Tokenizer training or selection
+        - Encoding or decoding
+        - Evaluation or reporting
+        - Documentation or packaging
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Real reproduction
+      description: Provide the exact command and bounded non-sensitive input needed to reproduce the issue.
+      placeholder: |
+        Command:
+        Input/source revision:
+        Observed output:
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional evidence
+      description: Add hashes, aggregate metrics, or links to upstream source documentation. Do not paste corpus records.

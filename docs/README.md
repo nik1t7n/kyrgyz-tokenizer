@@ -3,6 +3,8 @@
 This directory is the durable record of how the corpus and tokenizer are built.
 
 - `IMPLEMENTATION_PLAN.md` describes the current executable plan.
+- `ARCHITECTURE.md` describes module ownership, data flow, and the stable tokenizer/LLM boundary.
+- `PUBLIC_RELEASE.md` records what can be published, what stays local, and the rights boundary.
 - `SOURCE_REGISTRY.md` records source identity, version, provenance, license, and inclusion status.
 - `research/` contains evidence gathered from published corpus projects.
 - `decisions/` contains dated decisions and trade-offs. A decision is changed by adding a new entry or explicitly superseding the old one, not by silently rewriting history.
@@ -20,7 +22,7 @@ This directory is the durable record of how the corpus and tokenizer are built.
 - [0008: optimize v2 for Kyrgyz-Russian use](decisions/0008-bilingual-tokenizer-scope.md)
 - [0009: release the 32K 10%-Russian v2 candidate](decisions/0009-tokenizer-v2-selection.md)
 
-## Corpus v1 reports
+## Reports
 
 - [Final build report](reports/CORPUS_V1_BUILD_REPORT.md)
 - [Quality audit](reports/CORPUS_V1_QUALITY_AUDIT.md)

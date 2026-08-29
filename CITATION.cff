@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this research repository, please cite it using the metadata below."
+title: "Kyrgyz Tokenizer: reproducible Kyrgyz-Russian byte-level BPE research"
+type: software
+authors:
+  - family-names: Nosov
+    given-names: Nikita
+repository-code: "https://github.com/nik1t7n/kyrgyz-tokenizer"
+version: 0.2.0
+date-released: 2026-08-29

@@ -34,6 +34,7 @@ def release_tokenizer(config_path: Path, vocab_size: int) -> dict:
     tokenizer = Tokenizer.from_file(str(destination))
 
     metadata = {
+        "schema_version": 1,
         "released_at": datetime.now(timezone.utc).isoformat(),
         "id": f"kyrgyz-byte-bpe-v1-{vocab_size}",
         "algorithm": "byte-level BPE",
@@ -54,11 +55,13 @@ def release_tokenizer(config_path: Path, vocab_size: int) -> dict:
             [
                 "# Kyrgyz Byte BPE v1",
                 "",
-                f"Selected vocabulary: {vocab_size:,} tokens.",
+                "## Historical baseline",
                 "",
-                "The tokenizer is a no-UNK byte-level BPE trained on corpus-v1 with the published DeepSeek-V3 pre-tokenization structure. It performs no runtime Unicode normalization and defines no special tokens. Applications must add model-specific special tokens separately.",
+                f"This is the historical Kyrgyz-only {vocab_size:,}-token baseline. The current bilingual release candidate is [`kyrgyz-russian-byte-bpe-v2`](../kyrgyz-russian-byte-bpe-v2/).",
                 "",
-                "Load with:",
+                "V1 is a no-UNK byte-level BPE trained on corpus-v1 with the published DeepSeek-V3 pre-tokenization structure. It performs no runtime Unicode normalization and defines no special tokens. Applications must add model-specific protocol tokens separately.",
+                "",
+                "## Usage",
                 "",
                 "```python",
                 "from tokenizers import Tokenizer",
@@ -67,7 +70,13 @@ def release_tokenizer(config_path: Path, vocab_size: int) -> dict:
                 "assert tokenizer.decode(encoding.ids) == \"Кыргыз тили\"",
                 "```",
                 "",
-                "See `metadata.json` and `docs/reports/TOKENIZER_V1_EVALUATION.md` for provenance and measured limitations.",
+                "## Limitations and rights",
+                "",
+                "This tokenizer was optimized for Kyrgyz, not Russian or natural mixed-language chat. No downstream language model was trained to validate it. Its training sources include non-commercial and share-alike material; the artifact is published for research inspection under the repository rights notice.",
+                "",
+                f"Tokenizer SHA-256: `{metadata['tokenizer_sha256']}`.",
+                "",
+                "See [`metadata.json`](metadata.json), [the v1 evaluation](../../docs/reports/TOKENIZER_V1_EVALUATION.md), and [the public release boundary](../../docs/PUBLIC_RELEASE.md).",
                 "",
             ]
         ),

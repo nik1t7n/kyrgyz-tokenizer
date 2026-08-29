@@ -287,15 +287,38 @@ def select_and_release_v2(config_path: Path) -> dict[str, Any]:
         (working_dir / "training-manifest.json").read_text(encoding="utf-8")
     )
     variant = next(item for item in manifest["variants"] if item["id"] == chosen["id"])
+    condition = next(
+        item
+        for item in manifest["conditions"]
+        if item["pretokenizer"] == variant["pretokenizer"]
+        and item["russian_share"] == variant["russian_share"]
+    )
+    selected_by_source = dict(condition["selected_by_source"])
+    if "russian" in selected_by_source:
+        russian_source = next(iter(manifest["russian_availability"]))
+        selected_by_source[russian_source] = selected_by_source.pop("russian")
     release_dir = resolve_path(config["paths"]["release_dir"])
     release_dir.mkdir(parents=True, exist_ok=True)
     destination = release_dir / "tokenizer.json"
     shutil.copyfile(variant["path"], destination)
     released = {
+        "schema_version": 1,
         "released_at": datetime.now(timezone.utc).isoformat(),
         "id": chosen["id"],
         "config_sha256": config_sha256,
         "tokenizer_sha256": sha256_file(destination),
+        "training": {
+            "algorithm": manifest["algorithm"],
+            "base_vocabulary_size": manifest["base_vocabulary_size"],
+            "vocabulary_size": chosen["vocab_size"],
+            "pretokenizer": variant["pretokenizer"],
+            "normalizer": manifest["normalizer"],
+            "special_tokens": manifest["special_tokens"],
+            "russian_share": variant["russian_share"],
+            "requested_utf8_bytes": condition["requested_bytes"],
+            "selected_utf8_bytes": condition["selected_bytes"],
+            "selected_utf8_bytes_by_source": selected_by_source,
+        },
         "selection_constraints": selection,
         "baseline": {
             "id": baseline["id"],
@@ -308,34 +331,78 @@ def select_and_release_v2(config_path: Path) -> dict[str, Any]:
     (release_dir / "metadata.json").write_text(
         json.dumps(released, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    (release_dir / "README.md").write_text(
-        "\n".join(
-            [
-                "# Kyrgyz-Russian Byte BPE v2",
-                "",
-                f"Selected experiment candidate: `{chosen['id']}`.",
-                "",
-                f"Vocabulary: {chosen['vocab_size']:,} entries. The tokenizer uses the published {variant['pretokenizer']}-style Unicode category pre-tokenizer, a complete 256-byte base alphabet, no normalizer, and no special tokens.",
-                "",
-                "It was selected under explicit constraints: zero round-trip failures, at least 90% retention of the v1 external Kyrgyz compression, and at least a 20% improvement on external Russian data. Code efficiency was measured only as a diagnostic and did not affect selection.",
-                "",
-                "```python",
-                "from tokenizers import Tokenizer",
-                "",
-                "tokenizer = Tokenizer.from_file(\"tokenizer.json\")",
-                "text = \"Кыргызстанда кыргызча жана по-русски сүйлөшөт.\"",
-                "encoding = tokenizer.encode(text, add_special_tokens=False)",
-                "assert tokenizer.decode(encoding.ids) == text",
-                "```",
-                "",
-                "See `metadata.json` and `docs/reports/TOKENIZER_V2_EVALUATION.md` for the measured trade-offs and evidence limits.",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
+    _write_v2_model_card(release_dir, released)
     _write_v2_report(working_dir, candidates, eligible, pareto, released)
     return released
+
+
+def _write_v2_model_card(release_dir: Path, released: dict[str, Any]) -> None:
+    evaluation = released["evaluation"]
+    training = released["training"]
+    groups = evaluation["groups"]
+    source_rows = [
+        f"| `{source}` | {byte_count:,} |"
+        for source, byte_count in training["selected_utf8_bytes_by_source"].items()
+    ]
+    lines = [
+        "# Kyrgyz-Russian Byte BPE v2",
+        "",
+        "## Summary",
+        "",
+        f"`{released['id']}` is the selected 32K Kyrgyz-Russian byte-level BPE tokenizer. It is the frozen tokenizer checkpoint for a future small bilingual language-model experiment, not a language model itself.",
+        "",
+        "It has a complete 256-byte base alphabet, no unknown token, no runtime normalizer, and no special or chat-protocol tokens. Any model using it must define protocol tokens separately.",
+        "",
+        "## Intended use",
+        "",
+        "Use it to encode and decode Kyrgyz, Russian, or mixed Kyrgyz-Russian UTF-8 text for research and future model training. English, code, and other languages remain byte-safe but were not optimization targets.",
+        "",
+        "Do not interpret tokenizer compression as evidence of factuality, safety, reasoning ability, or downstream language-model quality.",
+        "",
+        "## Training",
+        "",
+        f"The tokenizer was trained on {training['selected_utf8_bytes']:,} UTF-8 bytes: 90% from the versioned Kyrgyz corpus v1 and 10% from the separate FineWeb2 Russian supplement. It uses the released GigaChat-style Unicode category pre-tokenizer and a byte-level BPE merge vocabulary of {training['vocabulary_size']:,} entries.",
+        "",
+        "| Source | Selected UTF-8 bytes |",
+        "| --- | ---: |",
+        *source_rows,
+        "",
+        "Raw corpus text is not redistributed. Source identities, revisions, transformations, and licenses are documented in the [source registry](../../docs/SOURCE_REGISTRY.md) and corpus reports.",
+        "",
+        "## Evaluation",
+        "",
+        "Higher bytes/token means that the same text uses fewer tokens.",
+        "",
+        "| Group | Bytes/token | Round-trip failures |",
+        "| --- | ---: | ---: |",
+        f"| Kyrgyz external | {groups['kyrgyz-external']['bytes_per_token']:.3f} | {groups['kyrgyz-external']['roundtrip_failures']} |",
+        f"| Russian external | {groups['russian-external']['bytes_per_token']:.3f} | {groups['russian-external']['roundtrip_failures']} |",
+        f"| Real mixed held-out | {groups['mixed-validation']['bytes_per_token']:.3f} | {groups['mixed-validation']['roundtrip_failures']} |",
+        f"| Code diagnostic | {groups['code-diagnostic']['bytes_per_token']:.3f} | {groups['code-diagnostic']['roundtrip_failures']} |",
+        "",
+        "Relative to the same-size Kyrgyz-only v1 release, this tokenizer uses about 26% fewer tokens on external Russian data, about 9% fewer on the real mixed diagnostic, and about 0.8% more on external Kyrgyz data. Selection required zero round-trip failures, at least 90% Kyrgyz compression retention, and at least a 20% Russian compression gain.",
+        "",
+        "## Usage",
+        "",
+        "```python",
+        "from tokenizers import Tokenizer",
+        "",
+        "tokenizer = Tokenizer.from_file(\"tokenizer.json\")",
+        "text = \"Кыргызстанда кыргызча жана по-русски сүйлөшөт.\"",
+        "encoding = tokenizer.encode(text, add_special_tokens=False)",
+        "assert tokenizer.decode(encoding.ids) == text",
+        "```",
+        "",
+        "## Limitations and rights",
+        "",
+        "The mixed evaluation contains 21 real held-out publication-style documents and is not representative of natural chat. No downstream LLM comparison has been run. The training mix includes non-commercial and share-alike sources; the artifact is published for research inspection under the repository rights notice, not under an inferred open-source model license.",
+        "",
+        f"Tokenizer SHA-256: `{released['tokenizer_sha256']}`.",
+        "",
+        "See [`metadata.json`](metadata.json), [the v2 evaluation](../../docs/reports/TOKENIZER_V2_EVALUATION.md), and [the public release boundary](../../docs/PUBLIC_RELEASE.md) for exact evidence and boundaries.",
+        "",
+    ]
+    (release_dir / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
 def _write_v2_report(

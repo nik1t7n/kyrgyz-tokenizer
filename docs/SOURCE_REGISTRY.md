@@ -4,7 +4,7 @@ Last updated: 2026-08-29
 
 Exact upstream revisions and downloaded checksums will be written by the build pipeline into a generated manifest.
 
-| Source ID | Upstream source | Published size | Intended role | License / use constraint | v1 status |
+| Source ID | Upstream source | Published size | Intended role | License / use constraint | Status |
 | --- | --- | ---: | --- | --- | --- |
 | `fineweb2-kir-cyrl` | [HuggingFaceFW/fineweb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2), subset `kir_Cyrl` | 1,069,582 docs; 4.36 GB UTF-8 | Broad web and domain coverage | ODC-By 1.0 plus Common Crawl terms | include with a deterministic byte cap |
 | `fineweb2-rus-cyrl` | [HuggingFaceFW/fineweb-2](https://huggingface.co/datasets/HuggingFaceFW/fineweb-2), subset `rus_Cyrl` | 699,083,579 docs; 5.82 TB UTF-8 | Bounded Russian supplement for the bilingual tokenizer experiment | ODC-By 1.0 plus Common Crawl terms | build separately with a deterministic shuffled byte cap |

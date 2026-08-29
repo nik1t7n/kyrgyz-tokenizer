@@ -1,9 +1,21 @@
 [project]
 name = "kyrgyz-tokenizer"
-version = "0.1.0"
-description = "Reproducible Kyrgyz corpus and tokenizer research"
+version = "0.2.0"
+description = "Reproducible Kyrgyz corpus and Kyrgyz-Russian byte-level BPE research"
 readme = "README.md"
+authors = [
+  { name = "Nikita Nosov" },
+]
 requires-python = ">=3.12,<3.14"
+keywords = ["bpe", "kyrgyz", "nlp", "russian", "tokenizer"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
   "datasets>=4.0,<5",
   "datasketch>=1.6,<2",
@@ -20,6 +32,11 @@ dependencies = [
 [project.scripts]
 kyrgyz-corpus = "kyrgyz_corpus.cli:main"
 kyrgyz-tokenizer = "kyrgyz_tokenizer.cli:main"
+
+[project.urls]
+Repository = "https://github.com/nik1t7n/kyrgyz-tokenizer"
+Documentation = "https://github.com/nik1t7n/kyrgyz-tokenizer/tree/main/docs"
+Issues = "https://github.com/nik1t7n/kyrgyz-tokenizer/issues"
 
 [build-system]
 requires = ["hatchling"]

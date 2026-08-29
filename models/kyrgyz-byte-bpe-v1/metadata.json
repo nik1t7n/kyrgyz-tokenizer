@@ -1,5 +1,6 @@
 {
-  "released_at": "2026-08-29T07:22:39.092144+00:00",
+  "schema_version": 1,
+  "released_at": "2026-08-29T08:15:22.222336+00:00",
   "id": "kyrgyz-byte-bpe-v1-32768",
   "algorithm": "byte-level BPE",
   "vocab_size": 32768,
