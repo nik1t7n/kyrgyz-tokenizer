@@ -14,3 +14,4 @@ This directory is the durable record of how the corpus and tokenizer are built.
 - [0002: official Wikipedia dump](decisions/0002-official-wikipedia-dump.md)
 - [0003: deterministic long-document chunking](decisions/0003-document-chunking.md)
 - [0004: Wikipedia structural cleanup](decisions/0004-wikipedia-structural-cleanup.md)
+- [0005: minimum document length](decisions/0005-minimum-document-length.md)

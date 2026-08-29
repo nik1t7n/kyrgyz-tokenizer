@@ -8,7 +8,7 @@ paths:
   artifacts_dir: artifacts/corpus-v1
 
 cleaning:
-  min_chars: 200
+  min_chars: 100
   max_chars: 200000
   min_alpha_ratio: 0.45
   min_cyrillic_ratio: 0.60
