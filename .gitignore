@@ -1,0 +1,15 @@
+.DS_Store
+.env
+.venv/
+__pycache__/
+*.py[cod]
+
+# Real downloaded and generated corpus data
+data/raw/
+data/interim/
+data/processed/
+artifacts/
+
+# Local caches
+.cache/
+.huggingface/
