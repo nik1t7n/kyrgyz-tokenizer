@@ -15,3 +15,8 @@ This directory is the durable record of how the corpus and tokenizer are built.
 - [0003: deterministic long-document chunking](decisions/0003-document-chunking.md)
 - [0004: Wikipedia structural cleanup](decisions/0004-wikipedia-structural-cleanup.md)
 - [0005: minimum document length](decisions/0005-minimum-document-length.md)
+
+## Corpus v1 reports
+
+- [Final build report](reports/CORPUS_V1_BUILD_REPORT.md)
+- [Quality audit](reports/CORPUS_V1_QUALITY_AUDIT.md)
