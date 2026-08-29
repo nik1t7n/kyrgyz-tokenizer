@@ -4,7 +4,7 @@ Date: 2026-08-29
 
 ## Release status
 
-The repository is packaged for public inspection at tokenizer checkpoint v2. The GitHub repository remains private until the owner deliberately changes its visibility. Changing visibility is an external publication action and is not part of this packaging commit.
+The repository is packaged and approved for public inspection at tokenizer checkpoint v2. Public visibility does not change the rights boundary described below.
 
 The current public-facing result is `models/kyrgyz-russian-byte-bpe-v2/tokenizer.json`, selected from the completed 24-candidate Kyrgyz-Russian experiment. No new corpus or tokenizer experiment is required before starting a separate downstream LLM study.
 
@@ -50,7 +50,7 @@ The packaging audit covered the current tree and every Git revision reachable fr
 
 The audit is bounded evidence, not a legal opinion or a guarantee that every upstream web page is free of third-party rights.
 
-## Publication checklist
+## Publication procedure
 
 Before changing GitHub visibility:
 
@@ -60,4 +60,4 @@ Before changing GitHub visibility:
 4. set the repository description and topics to match the README;
 5. change visibility only as a separate deliberate action.
 
-After publication, corpus text must remain excluded. Future LLM code, checkpoints, and evaluations should live in a separate phase or repository so this tokenizer result remains independently reproducible and citable.
+After publication, corpus text must remain excluded. Future LLM code, checkpoints, and evaluations belong in a separate repository so this tokenizer result remains independently reproducible and citable.

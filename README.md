@@ -1,26 +1,99 @@
 # Kyrgyz Tokenizer
 
-A reproducible research repository for building a provenance-preserving Kyrgyz corpus and a compact Kyrgyz-Russian byte-level BPE tokenizer.
+A 32,768-token byte-level BPE tokenizer made for Kyrgyz and Russian.
 
-The current release is a 32,768-token bilingual tokenizer intended as the frozen text-encoding checkpoint for a future small language-model experiment. It uses no unknown token, runtime normalizer, special tokens, or chat protocol.
+This repository answers one practical question: can we make Kyrgyz text use fewer, more useful tokens without making Russian text painfully long?
 
-## Result
+The answer from this experiment is yes. The final tokenizer keeps 99.25% of the Kyrgyz compression of the first Kyrgyz-only version, improves Russian compression by 35.33%, and improves mixed Kyrgyz-Russian documents by 9.64%.
 
-Compared with the Kyrgyz-only v1 tokenizer at the same vocabulary size:
+The tokenizer is finished and frozen. Training a language model comes later in a separate project.
 
-| Evaluation group | Kyrgyz v1 | Kyrgyz-Russian v2 | Practical change |
+## What is a tokenizer?
+
+A language model does not read text directly. A tokenizer first cuts text into pieces and replaces every piece with a number.
+
+```text
+"Кыргыз тили"
+
+text -> pieces -> token IDs -> language model
+```
+
+If the pieces fit the language well, one sentence needs fewer tokens. If they fit badly, the same sentence breaks into many tiny fragments.
+
+This project uses byte-level BPE:
+
+1. UTF-8 turns text into bytes.
+2. The tokenizer counts which neighboring pieces appear together often.
+3. It joins the most common pair into a new token.
+4. It repeats until the vocabulary reaches the chosen size.
+
+The tokenizer begins with all 256 possible byte values. Because of that, it can encode any valid UTF-8 text without an unknown token.
+
+```mermaid
+flowchart LR
+    A[Real documents] --> B[Clean text]
+    B --> C[UTF-8 bytes]
+    C --> D[Join common pairs]
+    D --> E[32,768 learned pieces]
+    E --> F[Shorter token sequences]
+```
+
+## The corpus
+
+The Kyrgyz training corpus contains 188,208 documents and a little over 524 million UTF-8 bytes.
+
+It combines four kinds of text so the tokenizer does not learn from one narrow source.
+
+```mermaid
+pie showData
+    title Kyrgyz corpus by bytes
+    "Wide web text" : 45.03
+    "Wikipedia" : 26.08
+    "News" : 25.00
+    "Manas" : 3.89
+```
+
+The pipeline removes broken pages, checks the language, and removes exact and near copies. It found and removed 18,777 near-duplicate documents.
+
+The raw corpus is not stored in Git. The sources have different licenses, so the repository keeps the code, source records, decisions, and final tokenizer without republishing all of the text.
+
+## Why add Russian?
+
+The first version learned only from Kyrgyz. It handled Kyrgyz well, but ordinary Russian sentences needed too many tokens.
+
+That is a poor fit for real documents in Kyrgyzstan, where both languages often appear on the same page.
+
+I trained 24 controlled candidates. They used different amounts of Russian text, two ways of separating text before BPE, and vocabulary sizes of 32K, 40K, and 50K.
+
+I expected the best mix to need 20% Russian. The result was better: 10% Russian was already enough.
+
+The final choice uses:
+
+| Choice | Value |
+| --- | --- |
+| Vocabulary | 32,768 tokens |
+| Training mix | 90% Kyrgyz, 10% Russian |
+| Algorithm | Category-aware byte-level BPE |
+| Unknown token | Not needed |
+| Special or chat tokens | None |
+
+## Results
+
+Higher bytes/token means one token carries more text, so the sequence is shorter.
+
+| Text | Kyrgyz-only v1 | Bilingual v2 | Result |
 | --- | ---: | ---: | --- |
-| Kyrgyz external | 8.983 bytes/token | 8.916 bytes/token | about 0.8% more tokens |
-| Russian external | 4.786 bytes/token | 6.477 bytes/token | about 26% fewer tokens |
-| Real mixed held-out | 6.505 bytes/token | 7.132 bytes/token | about 9% fewer tokens |
+| Kyrgyz | 8.983 | 8.916 | 99.25% of the original result kept |
+| Russian | 4.786 | 6.477 | 35.33% better |
+| Mixed documents | 6.505 | 7.132 | 9.64% better |
 
-Higher bytes/token means that the same text needs fewer tokens. V2 was selected from 24 controlled candidates while keeping the vocabulary at 32K. It uses 90% Kyrgyz and 10% Russian training bytes with the released GigaChat-style category-aware pre-tokenizer. Every evaluated record decoded exactly.
+On 21 real held-out documents containing both languages, 20 became shorter. One became longer by a single token. Every evaluated record decoded back into exactly the same text.
 
-This is tokenizer evidence, not a claim that a downstream LLM will be smarter. Model quality remains a separate experiment.
+This proves that the tokenizer packs the tested text more efficiently. It does not prove that a future language model will be smarter. That requires a separate experiment with matched models.
 
-## Use the released tokenizer
+## Try it
 
-Requirements: Python 3.12 or 3.13 and [`uv`](https://docs.astral.sh/uv/).
+You need Python 3.12 or 3.13 and [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
 git clone https://github.com/nik1t7n/kyrgyz-tokenizer.git
@@ -32,7 +105,7 @@ uv run kyrgyz-tokenizer inspect \
   --text "Кыргыз тили жана русский язык"
 ```
 
-Or load the tracked artifact directly:
+Or load the tokenizer directly:
 
 ```python
 from tokenizers import Tokenizer
@@ -40,73 +113,39 @@ from tokenizers import Tokenizer
 tokenizer = Tokenizer.from_file(
     "models/kyrgyz-russian-byte-bpe-v2/tokenizer.json"
 )
+
 text = "Кыргызстанда кыргызча жана по-русски сүйлөшөт."
-encoding = tokenizer.encode(text, add_special_tokens=False)
-assert tokenizer.decode(encoding.ids) == text
+ids = tokenizer.encode(text, add_special_tokens=False).ids
+
+assert tokenizer.decode(ids) == text
+print(ids)
 ```
 
-Applications must define their own BOS/EOS, chat, padding, and other model-protocol tokens. They are intentionally absent here.
+The tokenizer does not include BOS, EOS, padding, or chat markers. A future model can add the protocol tokens it needs.
 
-## Repository map
+## Where things live
 
 ```text
-configs/       pinned corpus and tokenizer experiment definitions
-docs/          research, decisions, experiment plans, and aggregate reports
-models/        selected v1 and v2 tokenizer artifacts and metadata
-src/
-  kyrgyz_corpus/      collection, cleaning, LID, deduplication, export
-  kyrgyz_tokenizer/   BPE training, benchmarks, evaluation, release
+configs/   settings for corpus and tokenizer runs
+docs/      research, decisions, and full reports
+models/    the frozen v1 and v2 tokenizer files
+src/       corpus and tokenizer code
 ```
 
-Downloaded and generated `data/` and `artifacts/` remain local and are ignored by Git. See [the architecture](docs/ARCHITECTURE.md) for module ownership and the complete data flow.
+The main artifact is [`models/kyrgyz-russian-byte-bpe-v2/tokenizer.json`](models/kyrgyz-russian-byte-bpe-v2/tokenizer.json).
 
-## Reproduce the completed work
+If you want the full technical story, start with:
 
-The real corpus build requires network access, about 4 GiB of free disk space, and acceptance of every upstream source's terms.
+- [How the tokenizer experiment was designed](docs/experiments/TOKENIZER_V2_PLAN.md)
+- [What the tokenizer results mean](docs/reports/TOKENIZER_V2_EVALUATION.md)
+- [How the Kyrgyz corpus was built](docs/reports/CORPUS_V1_BUILD_REPORT.md)
+- [What was found during the corpus audit](docs/reports/CORPUS_V1_QUALITY_AUDIT.md)
+- [The project architecture](docs/ARCHITECTURE.md)
 
-```bash
-# Kyrgyz corpus v1
-uv run kyrgyz-corpus build --config configs/corpus-v1.yaml --reset
+## Limits
 
-# Separate Russian supplement
-uv run kyrgyz-corpus build --config configs/corpus-ru-v1.yaml --reset
-
-# Kyrgyz-only tokenizer baseline
-uv run kyrgyz-tokenizer build --config configs/tokenizer-v1.yaml --reset
-
-# Completed 24-candidate bilingual experiment and release selection
-uv run kyrgyz-tokenizer v2-build --config configs/tokenizer-v2.yaml --reset
-```
-
-`--reset` only clears generated paths configured inside this repository. Downloaded archives and model files are retained and checksum-verified for reuse. Pipeline stages are resumable; exact revisions, hashes, counts, selection constraints, and observed limitations are recorded in the linked reports.
-
-## Evidence and documentation
-
-- [Repository architecture](docs/ARCHITECTURE.md)
-- [Public release and rights boundary](docs/PUBLIC_RELEASE.md)
-- [Source registry](docs/SOURCE_REGISTRY.md)
-- [Corpus implementation plan](docs/IMPLEMENTATION_PLAN.md)
-- [Corpus-construction research](docs/research/CORPUS_PRACTICES.md)
-- [Tokenizer-design research](docs/research/TOKENIZER_PRACTICES.md)
-- [Kyrgyz corpus v1 build report](docs/reports/CORPUS_V1_BUILD_REPORT.md)
-- [Kyrgyz corpus quality audit](docs/reports/CORPUS_V1_QUALITY_AUDIT.md)
-- [Russian supplement report](docs/reports/CORPUS_RU_V1_BUILD_REPORT.md)
-- [Tokenizer v1 evaluation](docs/reports/TOKENIZER_V1_EVALUATION.md)
-- [Tokenizer v2 preregistered plan](docs/experiments/TOKENIZER_V2_PLAN.md)
-- [Tokenizer v2 evaluation and selection](docs/reports/TOKENIZER_V2_EVALUATION.md)
-- [Decision log](docs/README.md)
-- [Changelog](CHANGELOG.md)
-
-## Known boundaries
-
-- The selected tokenizer is intrinsically evaluated; no matched downstream LLM has been trained.
-- The 21-document mixed benchmark contains real held-out bilingual documents but is publication-style, not representative chat data.
-- English and code round-trip safely through bytes but were not optimization targets.
-- The corpus includes non-commercial and share-alike sources. Corpus text is not redistributed.
-- A public repository is not automatically open source. This checkpoint is released for inspection under the [repository rights notice](LICENSE.md); upstream sources retain their own terms.
-
-## Project status
-
-Corpus v1, the Russian supplement, tokenizer v1, and the controlled Kyrgyz-Russian tokenizer v2 experiment are complete. Tokenizer v2 is frozen as the input artifact for the next LLM phase. New tokenizer experiments should create a new version rather than silently changing this checkpoint.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CITATION.cff](CITATION.cff) for public collaboration, vulnerability reporting, and citation.
+- No language model has been trained with this tokenizer yet.
+- The mixed test set has 21 real documents, mostly formal writing rather than chat.
+- English and code can be encoded, but the tokenizer was not optimized for them.
+- The corpus text is not redistributed.
+- A public repository is not automatically open source. Read [LICENSE.md](LICENSE.md) and [the public release note](docs/PUBLIC_RELEASE.md) before reuse or redistribution.
